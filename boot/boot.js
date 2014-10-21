@@ -4,20 +4,7 @@ type: application/javascript
 
 The main boot kernel for TiddlyWiki. This single file creates a barebones TW environment that is just sufficient to bootstrap the modules containing the main logic of the application.
 
-On the server this file is executed directly to boot TiddlyWiki. In the browser, this file is packed into a single HTML file along with other elements:
-
-# bootprefix.js
-# <module definitions>
-# boot.js
-
-The module definitions on the browser look like this:
-
-	$tw.defineModule("MyModule","moduletype",function(module,exports,require) {
-	// Module code inserted here
-	return exports;
-	});
-
-In practice, each module is wrapped in a separate script block.
+On the server this file is executed directly to boot TiddlyWiki. In the browser, this file is packed into a single HTML file.
 
 \*/
 
@@ -1727,7 +1714,9 @@ $tw.boot.startup = function(options) {
 		// If the first command line argument doesn't start with `--` then we
 		// interpret it as the path to the wiki folder, which will otherwise default
 		// to the current folder
+		var explicitWikiPath;
 		if($tw.boot.argv[0] && $tw.boot.argv[0].indexOf("--") !== 0) {
+			explicitWikiPath = true;
 			$tw.boot.wikiPath = $tw.boot.argv[0];
 			$tw.boot.argv = $tw.boot.argv.slice(1);
 		} else {
@@ -1759,6 +1748,9 @@ $tw.boot.startup = function(options) {
 	$tw.utils.registerFileType("image/svg+xml","utf8",".svg",{flags:["image"]});
 	$tw.utils.registerFileType("image/x-icon","base64",".ico",{flags:["image"]});
 	$tw.utils.registerFileType("application/font-woff","base64",".woff");
+	$tw.utils.registerFileType("audio/ogg","base64",".ogg");
+	$tw.utils.registerFileType("audio/mp3","base64",".mp3");
+	$tw.utils.registerFileType("audio/mp4","base64",[".mp4",".m4a"]);
 	$tw.utils.registerFileType("text/x-markdown","utf8",[".md",".markdown"]);
 	// Create the wiki store for the app
 	$tw.wiki = new $tw.Wiki();
@@ -1772,6 +1764,9 @@ $tw.boot.startup = function(options) {
 		$tw.loadTiddlersBrowser();
 	} else {
 		$tw.loadTiddlersNode();
+		if(!$tw.boot.wikiInfo && explicitWikiPath) {
+			return $tw.utils.error("Wiki folder '" + $tw.boot.wikiPath + "' is missing a 'tiddlywiki.info' file");
+		}
 	}
 	// Unpack plugin tiddlers
 	$tw.wiki.readPluginInfo();

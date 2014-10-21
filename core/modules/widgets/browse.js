@@ -41,9 +41,13 @@ BrowseWidget.prototype.render = function(parent,nextSibling) {
 	}
 	// Add a click event handler
 	domNode.addEventListener("change",function (event) {
-		self.wiki.readFiles(event.target.files,function(tiddlerFieldsArray) {
-			self.dispatchEvent({type: "tm-import-tiddlers", param: JSON.stringify(tiddlerFieldsArray)});
-		});
+		if(self.message) {
+			self.dispatchEvent({type: self.message, param: event.target.files});
+		} else {
+			self.wiki.readFiles(event.target.files,function(tiddlerFieldsArray) {
+				self.dispatchEvent({type: "tm-import-tiddlers", param: JSON.stringify(tiddlerFieldsArray)});
+			});
+		}
 		return false;
 	},false);
 	// Insert element
@@ -57,6 +61,7 @@ Compute the internal state of the widget
 */
 BrowseWidget.prototype.execute = function() {
 	this.browseMultiple = this.getAttribute("multiple");
+	this.message = this.getAttribute("message");
 };
 
 /*
